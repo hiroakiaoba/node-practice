@@ -37,16 +37,24 @@ function getFromClient(request, response) {
   }
 }
 
+var data = {
+  'Taro': '09-999-999',
+  'Hana': '08-888-888',
+  'Sachi': '07-777-777',
+  'go': '06-666-666'
+};
+
 // indexのアクセス処理
 function response_index(request, response) {
-  var msg = "これはIndexページです"
+  var msg = 'これはIndexページです。'
   var content = ejs.render(index_page, {
-    title: "Index",
+    title: 'Index',
     content: msg,
-  })
+    data: data,
+  });
   response.writeHead(200, {'Content-Type': 'text/html'});
   response.write(content);
-  response.end();
+  response.end();  
 }
 
 function response_other(request, response) {
