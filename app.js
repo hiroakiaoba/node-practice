@@ -38,51 +38,72 @@ function getFromClient(request, response) {
 }
 
 var data = {
-  'Taro': '09-999-999',
-  'Hana': '08-888-888',
-  'Sachi': '07-777-777',
-  'go': '06-666-666'
+  msg: 'no message...'
 };
+
+var data2 = {
+  'Taro':['taro@yamada', '09-999-999', 'Tokyo'],
+  'Hana':['hana@flower', '08-888-888', 'Yokohama'],
+  'Sachi':['sachi@happy', '07-777-777', 'Nagoya'],
+  'go':['go@baseball', '06-666-666', 'USA']
+}
 
 // indexのアクセス処理
 function response_index(request, response) {
-  var msg = 'これはIndexページです。'
-  var content = ejs.render(index_page, {
-    title: 'Index',
-    content: msg,
-    data: data,
-  });
-  response.writeHead(200, {'Content-Type': 'text/html'});
-  response.write(content);
-  response.end();  
-}
-
-function response_other(request, response) {
-  var msg = "これはOtherページです。"
   if (request.method == 'POST') {
     var body = '';
     request.on('data', (data) => {
       body += data;
     });
     request.on('end', () => {
-      var post_data = qs.parse(body);
-      msg += 'あなたは、「' + post_data.msg + '」と書きました。';
-      var content = ejs.render(other_page, {
-        title: "Other",
-        content: msg,
-      });
-      response.writeHead(200, {'Content-Type': 'text/html'});
-      response.write(content);
-      response.end();
+      data = qs.parse(body);
+      setCookie('msg', data.msg, response);
+      write_index(request, response);
     });
-    } else {
-    var msg = "ページがありません。"
-    var content = ejs.render(other_page, {
-      title: "Other",
-      content: msg,
-    });
-    response.writeHead(200, {'Content-Type': 'text/html'});
-    response.write(content);
-    response.end();
+  } else {
+    write_index(request, response);
   }
+}
+
+function write_index(request, response) {
+  var msg = '*伝言を表示します。'
+  var cookie_data = getCookie('msg', request);
+  var content = ejs.render(index_page, {
+    title: 'Index',
+    content: msg,
+    data: data,
+    cookie_data: cookie_data,
+  });
+  response.writeHead(200, {'Content-Type': 'text/html'});
+  response.write(content);
+  response.end();
+}
+
+function response_other(request, response) {
+  var msg = "これはOtherページです。"
+  var content = ejs.render(other_page, {
+    title: "Other",
+    content: msg,
+    data: data2,
+    filename: 'data_item'
+  });
+  response.writeHead(200, {'Content-Type': 'text/html'});
+  response.write(content);
+}
+
+function setCookie(key, value, response) {
+  var cookie = escape(value);
+  response.setHeader('Set-Cookie', [key + '=' + cookie]);
+}
+
+function getCookie(key, request) {
+  var cookie_data = request.headers.cookie != undefined ? request.headers.cookie : '' ;
+  var data = cookie_data.split(';');
+  for (var i in data) {
+    if (data[i].trim().startsWith(key + '=')) {
+      var result = data[i].trim().substring(key.length + 1);
+      return unescape(result);
+    }
+  }
+  return '';
 }
